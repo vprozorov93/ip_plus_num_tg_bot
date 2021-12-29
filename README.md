@@ -24,15 +24,15 @@
 * csv
 * copy
 
-В качестве библиотеки работы с Telegram API использовалась pyTelegramBotAPI(telebot), для запуска бота ее необходимо установить.
+В качестве библиотеки работы с Telegram API использовалась pyTelegramBotAPI(telebot).
 
 ## Установка и запуск
 1. Сделайте локальный репозиторий проекта у себя на ПК
 2. Установите Python версии не ниже 3.9.6
-3. Установите pyTelegramBotAPI следующей командой:
-    * Windows: ```pip install pytelegrambotapi```
-    * MacOS: ```pip3 install pytelegrambotapi```
-4. В файл ```config.py``` необходимо поместить токен созданного вами бота через ```@BotFather```
+3. Установите все необходимые инструменты для корректной работы бота:
+    * Windows: ```pip install -r requirements.txt```
+    * MacOS: ```pip3 install -r requirements.txt```
+4. В файл ```config.py``` для переменной token необходимо поместить токен созданного вами бота через ```@BotFather```
 5. Откройте консоль в директории локального репозитория и напишите ```python3 main.py```
 6. Бэкэнд бота запущен, можно его гонять в хвост и гриву.
 
