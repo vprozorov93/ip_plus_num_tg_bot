@@ -6,7 +6,9 @@ def _find_separator(string_ip):
     """
     Вспомогательная функция используется в функциях _make_ip_list и _make_log_file для определения разделителя IP
     адресов в пользовательской строке.
+
     :param string_ip: Строка с IP адресами полученная от пользователя.
+
     :return: Возвращает значение разделителя в строке string_ip.
     """
     if ',\n' in string_ip:
@@ -30,7 +32,9 @@ def _make_ip_list(string_ip):
     Вспомогательная функция, вызывается из основной функции processing_ip_plus_syllable для обработки строки с IP
     адресами, полученной от пользователя с целью преобразования ее в список.
     Используется также в функции _make_log_file.
+
     :param string_ip: Строка с IP адресами полученная от пользователя.
+
     :return: Возвращает список IP адресов, полученных из строки введенной пользователем.
     """
     separator = _find_separator(string_ip)
@@ -63,7 +67,6 @@ def _make_ip_list(string_ip):
                     string_ip_list[index][1] = 'invalid_mask_on_input'
             else:
                 string_ip_list[index][1] = 'invalid_mask_on_input'
-        index += 1
 
     return string_ip_list
 
@@ -72,11 +75,16 @@ def _make_log_file(string_ip, processed_ip_list, error, file_name='log.txt'):
     """
     Вспомогательная функция, вызывается из основной функции processing_ip_plus_syllable для формирования текста
     и записи файла лога работы основной функции.
+
     :param string_ip: Строка с IP адресами полученная от пользователя.
+
     :param processed_ip_list: Результат обработки полученной от пользователя строки
     с IP адресами функцией processing_ip_plus_syllable в виде списка.
+
     :param error: Количество возникших ошибок при работе функции processing_ip_plus_syllable.
+
     :param file_name: Имя для создаваемого лог файла.
+
     :return: Функция ничего не возвращает, а создает log файл в текущей директории.
     """
     with open(os.path.join(os.getcwd(), file_name), 'wt') as file:
@@ -107,16 +115,20 @@ def processing_ip_plus_syllable(string_ip: str, syllable: int, file_name='_log.t
     """
     Функция обрабатывает полученную на входе строку состоящую из IP адресов добавляя указанное значение к последнему
      октету.
+
     :param string_ip: Строка состоящая из IP адресов разделенных одним из символов:
         - переносом строки;
         - пробелом;
         - запятой;
         - точкой с запятой;
         - нижним подчеркиванием.
+
     :param syllable: Число или цифра, которое необходимо прибавить к последнему октету каждого IP адреса из string_ip.
+
     :param file_name: Название для создания файла лога с расширением txt, по-умолчанию значение _log.txt.
     В случае, если при обработке string_ip возникнут ошибки, функция создаст log файл, который
     содержит результат обработки каждого IP адреса из string_ip и текст ошибки, если она возникла при итерации.
+
     :return: Возвращает список вида [строка с обработанными ip адресами, количество возникших ошибок].
     """
     list_ip = _make_ip_list(string_ip)
@@ -132,12 +144,14 @@ def processing_ip_plus_syllable(string_ip: str, syllable: int, file_name='_log.t
             if index == 0:
                 ip[index] = octet+syllable
                 if ip[index] > 255:
-                    ip[index] = ip[index]-255
-                    ip[index+1] = ip[index+1]+1
+                    plus_octet = ip[index]//255
+                    ip[index] = ip[index]-255*plus_octet
+                    ip[index+1] = ip[index+1]+plus_octet
             elif index == 1 or index == 2:
                 if ip[index] > 255:
-                    ip[index] = ip[index]-255
-                    ip[index+1] = ip[index+1]+1
+                    plus_octet = ip[index] // 255
+                    ip[index] = ip[index] - 255 * plus_octet
+                    ip[index + 1] = ip[index + 1] + plus_octet
             elif index == 3:
                 if ip[index] > 255:
                     list_ip[list_ip.index([ip, mask])][0] = 'invalid_ip_when_processing'
@@ -145,7 +159,6 @@ def processing_ip_plus_syllable(string_ip: str, syllable: int, file_name='_log.t
                     error += 1
                 else:
                     list_ip[list_ip.index([ip, mask])][0].reverse()
-            # octet += 1
 
         if ip != 'invalid_ip_when_processing':
             ip_string = ''
