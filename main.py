@@ -7,7 +7,7 @@ import proccessing_ip as p_ip
 
 bot = telebot.TeleBot(cfg.token)
 
-
+    
 @bot.message_handler(commands=['start'])
 def welcome_message(message):
     """
@@ -26,7 +26,12 @@ def welcome_message(message):
            "Вызови /help, что бы узнать в каком виде мне можно давать список IP на обработку и какие есть ограничения."
     bot.send_message(message.chat.id, text.format(message.from_user, bot.get_me()), parse_mode='html')
 
-
+@bot.message_handler(commands=['github'])
+def github_message(message):
+    text = 'Я на (https://github.com/vprozorov93/ip_plus_num_tg_bot-Portfolio-Project- "GitHub")'
+    bot.send_message(message.chat.id, text, parse_mode='markdown')
+    
+    
 @bot.message_handler(commands=['help'])
 def help_message(message):
     """
