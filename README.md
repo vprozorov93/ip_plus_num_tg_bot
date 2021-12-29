@@ -22,6 +22,7 @@
 * os
 * re
 * csv
+* copy
 
 В качестве библиотеки работы с Telegram API использовалась pyTelegramBotAPI(telebot), для запуска бота ее необходимо установить.
 
