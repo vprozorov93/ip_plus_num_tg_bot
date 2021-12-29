@@ -1,5 +1,6 @@
 import os
 import re
+import copy
 
 
 def _find_separator(string_ip):
@@ -9,22 +10,13 @@ def _find_separator(string_ip):
 
     :param string_ip: Строка с IP адресами полученная от пользователя.
 
-    :return: Возвращает значение разделителя в строке string_ip.
+    :yield: Возвращает значение разделителя в строке string_ip.
     """
-    if ',\n' in string_ip:
-        separator = ',\n'
-    elif '\n' in string_ip:
-        separator = '\n'
-    elif ',' in string_ip:
-        separator = ','
-    elif ' ' in string_ip:
-        separator = ' '
-    elif ';' in string_ip:
-        separator = ';'
-    else:
-        separator = '_'
 
-    return separator
+    separator_list = [',\n', '\n', ',', ' ', ';', '_']
+    for separator in separator_list:
+      if separator in string_ip:
+        yield separator
 
 
 def _make_ip_list(string_ip):
@@ -37,8 +29,12 @@ def _make_ip_list(string_ip):
 
     :return: Возвращает список IP адресов, полученных из строки введенной пользователем.
     """
-    separator = _find_separator(string_ip)
+    separator = next(_find_separator(string_ip), None)
+    if separator is None:
+        return None
     string_ip_list = string_ip.split(separator)
+    copy_string_ip_list = copy.deepcopy(string_ip_list)
+    result = [string_ip_list, copy_string_ip_list]
 
     for index, ip_mask in enumerate(string_ip_list):
         string_ip_list[index] = ip_mask.replace(' ', '')
@@ -68,18 +64,18 @@ def _make_ip_list(string_ip):
             else:
                 string_ip_list[index][1] = 'invalid_mask_on_input'
 
-    return string_ip_list
+    return result
 
 
-def _make_log_file(string_ip, processed_ip_list, error, file_name='log.txt'):
+def _make_log_file(processed_ip_list, error, file_name='log.txt'):
     """
     Вспомогательная функция, вызывается из основной функции processing_ip_plus_syllable для формирования текста
     и записи файла лога работы основной функции.
 
-    :param string_ip: Строка с IP адресами полученная от пользователя.
-
     :param processed_ip_list: Результат обработки полученной от пользователя строки
-    с IP адресами функцией processing_ip_plus_syllable в виде списка.
+    с IP адресами функцией processing_ip_plus_syllable в виде списка, который содержит элементы:
+        [0] - отредактированный функцией processing_ip_plus_syllable список;
+        [1] - изначальный список, без обработки.
 
     :param error: Количество возникших ошибок при работе функции processing_ip_plus_syllable.
 
@@ -88,10 +84,8 @@ def _make_log_file(string_ip, processed_ip_list, error, file_name='log.txt'):
     :return: Функция ничего не возвращает, а создает log файл в текущей директории.
     """
     with open(os.path.join(os.getcwd(), file_name), 'wt') as file:
-        separator = _find_separator(string_ip)
-        input_ip_list = string_ip.split(separator)
         new_list_ip = []
-        for ip, mask in processed_ip_list:
+        for ip, mask in processed_ip_list[0]:
             if ip == 'invalid_ip_on_input' or ip == 'invalid_ip_when_processing':
                 if mask == 'invalid_mask_on_input':
                     new_list_ip.append(f'Error: {ip} and {mask}')
@@ -104,8 +98,8 @@ def _make_log_file(string_ip, processed_ip_list, error, file_name='log.txt'):
             else:
                 new_list_ip.append(f'Success: {ip}/{mask}')
         log_string = f'Error: {error}pcs\n\n'
-        for index in range(0, len(input_ip_list)):
-            log_string += f'{input_ip_list[index]} --->>> {new_list_ip[index]}\n'
+        for index in range(0, len(processed_ip_list[1])):
+            log_string += f'{processed_ip_list[1][index]} --->>> {new_list_ip[index]}\n'
 
         file.write(log_string)
     return None
@@ -132,42 +126,44 @@ def processing_ip_plus_syllable(string_ip: str, syllable: int, file_name='_log.t
     :return: Возвращает список вида [строка с обработанными ip адресами, количество возникших ошибок].
     """
     list_ip = _make_ip_list(string_ip)
+    if list_ip is None:
+        return [None, 0]
+
     error = 0
-    for ip, mask in list_ip:
+    for ip, mask in list_ip[0]:
         if ip == 'invalid_ip_on_input':
             error += 1
             continue
 
         ip.reverse()
 
-        for index, octet in enumerate(ip):
-            if index == 0:
-                ip[index] = octet+syllable
-                if ip[index] > 255:
-                    plus_octet = ip[index]//255
-                    ip[index] = ip[index]-255*plus_octet
-                    ip[index+1] = ip[index+1]+plus_octet
-            elif index == 1 or index == 2:
-                if ip[index] > 255:
-                    plus_octet = ip[index] // 255
-                    ip[index] = ip[index] - 255 * plus_octet
-                    ip[index + 1] = ip[index + 1] + plus_octet
-            elif index == 3:
-                if ip[index] > 255:
-                    list_ip[list_ip.index([ip, mask])][0] = 'invalid_ip_when_processing'
-                    ip = 'invalid_ip_when_processing'
-                    error += 1
-                else:
-                    list_ip[list_ip.index([ip, mask])][0].reverse()
+        ip[0] = ip[0] + syllable
+        if ip[0] > 255:
+            plus_octet = ip[0]//255
+            ip[0] = ip[0]-255*plus_octet
+            ip[1] = ip[1]+plus_octet
+
+        for index in range(1,3):
+            if ip[index] > 255:
+                plus_octet = ip[index]//255
+                ip[index] = ip[index]-255*plus_octet
+                ip[index+1] = ip[index+1]+plus_octet
+
+        if ip[3] > 255:
+            list_ip[0][list_ip[0].index([ip, mask])][0] = 'invalid_ip_when_processing'
+            ip = 'invalid_ip_when_processing'
+            error += 1
+        else:
+            list_ip[0][list_ip[0].index([ip, mask])][0].reverse()
 
         if ip != 'invalid_ip_when_processing':
             ip_string = ''
-            for octet in list_ip[list_ip.index([ip, mask])][0]:
+            for octet in list_ip[0][list_ip[0].index([ip, mask])][0]:
                 ip_string += f'{octet}.'
-            list_ip[list_ip.index([ip, mask])] = [ip_string.rstrip('.'), mask]
+            list_ip[0][list_ip[0].index([ip, mask])] = [ip_string.rstrip('.'), mask]
 
     new_string_ip = ''
-    for ip, mask in list_ip:
+    for ip, mask in list_ip[0]:
         if ip == 'invalid_ip_on_input' or ip == 'invalid_ip_when_processing':
             continue
         elif mask == 'invalid_mask_on_input':
@@ -179,6 +175,6 @@ def processing_ip_plus_syllable(string_ip: str, syllable: int, file_name='_log.t
             new_string_ip += f'{ip}/{mask}\n'
 
     if error != 0:
-        _make_log_file(string_ip, list_ip, error, file_name)
+        _make_log_file(list_ip, error, file_name)
 
     return [new_string_ip, error]

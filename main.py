@@ -130,8 +130,11 @@ def processing_text(message):
                 bot.send_document(message.chat.id, ('log.txt', file))
             os.remove(path_log)
         else:
-            text = 'Жду новый список)'
-            bot.send_message(message.chat.id, result[0])
+            if result[0] is None:
+                text = 'Не найден доступный разделитель в списке IP адресов, воспользуйтесь командой /help'
+            else:
+                text = 'Жду новый список ;)'
+                bot.send_message(message.chat.id, result[0])
 
         bot.send_message(message.chat.id, text)
         db.data[message.from_user.id]['status'] = 0
