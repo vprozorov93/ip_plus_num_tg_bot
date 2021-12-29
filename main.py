@@ -28,8 +28,8 @@ def welcome_message(message):
 
 @bot.message_handler(commands=['github'])
 def github_message(message):
-    text = 'Я на (https://github.com/vprozorov93/ip_plus_num_tg_bot-Portfolio-Project- "GitHub")'
-    bot.send_message(message.chat.id, text, parse_mode='markdown')
+    text = 'Я на <a href="https://github.com/vprozorov93/ip_plus_num_tg_bot-Portfolio-Project-.git">GitHub</a>'
+    bot.send_message(message.chat.id, text, parse_mode='html')
     
     
 @bot.message_handler(commands=['help'])
